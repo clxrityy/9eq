@@ -2,6 +2,8 @@
 
 Real-time audio visualizer.
 
+[![Image from Gyazo](https://i.gyazo.com/87cbfe6cd9a0a210c977033578f4c382.gif)](https://gyazo.com/87cbfe6cd9a0a210c977033578f4c382)
+
 > [!NOTE]
 > The CLI command is `nineeq` (nine-e-q) and the Python package is `9eq`
 
@@ -9,7 +11,6 @@ Real-time audio visualizer.
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 [![Tests](https://github.com/clxrityy/9eq/actions/workflows/test.yml/badge.svg)](https://github.com/clxrityy/9eq/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/clxrityy/9eq/branch/main/graph/badge.svg)](https://codecov.io/gh/clxrityy/9eq)
-![Coverage](./coverage.svg)
 
 ## Features
 
@@ -84,6 +85,12 @@ nineeq visualize --mode wave
 
 # Specify audio device
 nineeq visualize --device 1
+
+# Adjust smoothing (0-1, higher = smoother)
+nineeq visualize --smoothing 0.8
+
+# Adjust frequency bandwidth (wider = captures more energy around target frequencies)
+nineeq visualize --bandwidth 40
 ```
 
 #### Analyze an audio file
