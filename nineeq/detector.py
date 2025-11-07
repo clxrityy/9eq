@@ -50,6 +50,10 @@ class FrequencyDetector:
         if audio_data.ndim > 1:
             audio_data = audio_data.flatten()
 
+        # Handle empty signal
+        if len(audio_data) == 0:
+            return dict.fromkeys(self.target_freqs, 0.0)
+
         # Apply window function to reduce spectral leakage
         windowed_data = audio_data * signal.windows.hann(len(audio_data))  # type: ignore
 

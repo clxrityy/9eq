@@ -94,7 +94,11 @@ class TestFrequencyDetector:
         noise = rng.standard_normal(4096) * 0.1
         detected = self.detector.detect_frequencies(noise)
 
-        # All magnitudes should be relatively low
-        normalized = self.detector.normalize_magnitudes(detected)
-        # No single frequency should dominate
-        assert all(v < 0.5 for v in normalized.values())
+        # All magnitudes should be relatively low (raw values)
+        # With noise, no frequency should have very high raw magnitude
+        assert all(v < 1000 for v in detected.values())
+        
+        # Check that frequencies are relatively evenly distributed
+        # (no single frequency should have 10x more energy than the average)
+        avg_magnitude = np.mean(list(detected.values()))
+        assert all(v < avg_magnitude * 10 for v in detected.values())

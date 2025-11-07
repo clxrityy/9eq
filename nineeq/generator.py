@@ -35,6 +35,9 @@ class ToneGenerator:
         Returns:
             Audio samples as numpy array
         """
+        # Use absolute value to handle negative durations
+        duration = abs(duration)
+        
         t = np.linspace(0, duration, int(self.sample_rate * duration), False)
         tone = amplitude * np.sin(2 * np.pi * frequency * t)
         return tone
