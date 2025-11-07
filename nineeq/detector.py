@@ -77,6 +77,57 @@ class FrequencyDetector:
 
         return detected
 
+    def detect_frequency_bands(
+        self, audio_data: np.ndarray, bandwidth: float = 20.0
+    ) -> Dict[int, float]:
+        """
+        Detect frequencies using wider frequency bands for smoother visualization
+        
+        This method computes the average energy in a frequency band around each
+        target frequency, providing more stable and meaningful measurements for
+        visualization purposes.
+
+        Args:
+            audio_data: 1D numpy array of audio samples
+            bandwidth: Bandwidth in Hz to average around each target frequency
+
+        Returns:
+            Dictionary mapping frequency -> average band energy
+        """
+        # Ensure audio is 1D
+        if audio_data.ndim > 1:
+            audio_data = audio_data.flatten()
+
+        # Handle empty signal
+        if len(audio_data) == 0:
+            return dict.fromkeys(self.target_freqs, 0.0)
+
+        # Apply window function
+        windowed_data = audio_data * signal.windows.hann(len(audio_data))  # type: ignore
+
+        # Perform FFT
+        fft_data = np.fft.rfft(windowed_data)
+        fft_freqs = np.fft.rfftfreq(len(windowed_data), 1 / self.sample_rate)
+        magnitudes = np.abs(fft_data)
+
+        detected = {}
+        for target_freq in self.target_freqs:
+            # Define frequency band
+            low_freq = target_freq - bandwidth / 2
+            high_freq = target_freq + bandwidth / 2
+
+            # Find all bins within the band
+            band_mask = (fft_freqs >= low_freq) & (fft_freqs <= high_freq)
+            
+            if np.any(band_mask):
+                # Calculate RMS energy in the band (more stable than peak)
+                band_magnitudes = magnitudes[band_mask]
+                detected[target_freq] = np.sqrt(np.mean(band_magnitudes ** 2))
+            else:
+                detected[target_freq] = 0.0
+
+        return detected
+
     def detect_with_bandpass(
         self, audio_data: np.ndarray, target_freq: int
     ) -> Tuple[float, np.ndarray]:

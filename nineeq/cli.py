@@ -25,6 +25,8 @@ def visualize_realtime(args):
         sample_rate=args.sample_rate,
         buffer_size=args.buffer_size,
         mode=args.mode,
+        smoothing_factor=args.smoothing,
+        bandwidth=args.bandwidth,
     )
 
     try:
@@ -81,6 +83,18 @@ def main():
     )
     viz_parser.add_argument(
         "--device", type=int, help="Input device index (default: system default)"
+    )
+    viz_parser.add_argument(
+        "--smoothing",
+        type=float,
+        default=0.7,
+        help="Smoothing factor 0-1 (higher = smoother, default: 0.7)",
+    )
+    viz_parser.add_argument(
+        "--bandwidth",
+        type=float,
+        default=30.0,
+        help="Frequency bandwidth in Hz (wider = smoother gradient, default: 30)",
     )
 
     # Analyze file command

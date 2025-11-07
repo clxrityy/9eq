@@ -31,6 +31,8 @@ class FrequencyVisualizer:
         buffer_size: int = DEFAULT_BUFFER_SIZE,
         frequencies: Optional[list] = None,
         mode: str = "bar",
+        smoothing_factor: float = 0.7,
+        bandwidth: float = 30.0,
     ):
         """
         Initialize the frequency visualizer
@@ -40,15 +42,22 @@ class FrequencyVisualizer:
             buffer_size: Size of audio buffer for processing
             frequencies: List of frequencies to visualize (defaults to nineeq_FREQS)
             mode: Visualization mode ('bar', 'wave', 'circle')
+            smoothing_factor: Exponential smoothing factor (0-1, higher = more smoothing)
+            bandwidth: Frequency bandwidth in Hz for detection (wider = smoother)
         """
         self.sample_rate = sample_rate
         self.buffer_size = buffer_size
         self.target_freqs = frequencies or nineeq_FREQS
         self.mode = mode
+        self.smoothing_factor = smoothing_factor
+        self.bandwidth = bandwidth
 
         self.detector = FrequencyDetector(sample_rate=sample_rate)
         self.audio_buffer = deque(maxlen=buffer_size)
         self.magnitude_history = {freq: deque(maxlen=50) for freq in self.target_freqs}
+        
+        # Store smoothed values for exponential moving average
+        self.smoothed_magnitudes = dict.fromkeys(self.target_freqs, 0.0)
 
         self.stream: Optional[Any] = None
         self.fig: Optional[Any] = None
@@ -102,6 +111,8 @@ class FrequencyVisualizer:
             fontweight="bold",
         )
         self.ax.set_xticks(range(len(self.target_freqs)))
+        self.ax.set_xticklabels([f"{f}Hz" for f in self.target_freqs], rotation=45)
+        self.ax.set_ylim(0, 1.1)  # Set fixed scale for normalized values
         self.ax.grid(True, alpha=0.3, axis="y")
         plt.tight_layout()
 
@@ -136,22 +147,24 @@ class FrequencyVisualizer:
         """Update bar chart visualization"""
         if len(self.audio_buffer) >= self.buffer_size and self.bars is not None:
             audio_data = np.array(list(self.audio_buffer))
-            detected = self.detector.detect_frequencies(audio_data)
+            
+            # Use band-based detection for smoother visualization
+            detected = self.detector.detect_frequency_bands(audio_data, self.bandwidth)
             normalized = self.detector.normalize_magnitudes(detected)
 
-            # Update history
+            # Apply exponential moving average for temporal smoothing
             for freq in self.target_freqs:
-                self.magnitude_history[freq].append(normalized.get(freq, 0))
+                current_value = normalized.get(freq, 0)
+                # EMA formula: smoothed = alpha * current + (1 - alpha) * previous
+                alpha = 1 - self.smoothing_factor
+                self.smoothed_magnitudes[freq] = (
+                    alpha * current_value + 
+                    self.smoothing_factor * self.smoothed_magnitudes[freq]
+                )
 
-            # Smooth magnitudes using history
-            smoothed = {
-                freq: np.mean(list(self.magnitude_history[freq]))
-                for freq in self.target_freqs
-            }
-
-            # Update bars
+            # Update bars with smoothed values
             for bar, freq in zip(self.bars, self.target_freqs):
-                bar.set_height(smoothed[freq])
+                bar.set_height(self.smoothed_magnitudes[freq])
 
         return self.bars or []
 
@@ -165,12 +178,21 @@ class FrequencyVisualizer:
             self.ax.set_xlim(0, len(audio_data))
             self.ax.set_ylim(-1, 1)
 
-            # Update frequency bars
-            detected = self.detector.detect_frequencies(audio_data)
+            # Update frequency bars with band-based detection
+            detected = self.detector.detect_frequency_bands(audio_data, self.bandwidth)
             normalized = self.detector.normalize_magnitudes(detected)
 
+            # Apply exponential moving average
+            for freq in self.target_freqs:
+                current_value = normalized.get(freq, 0)
+                alpha = 1 - self.smoothing_factor
+                self.smoothed_magnitudes[freq] = (
+                    alpha * current_value + 
+                    self.smoothing_factor * self.smoothed_magnitudes[freq]
+                )
+
             for bar, freq in zip(self.bars, self.target_freqs):
-                bar.set_height(normalized.get(freq, 0))
+                bar.set_height(self.smoothed_magnitudes[freq])
 
         return [self.line] + list(self.bars) if self.line is not None and self.bars is not None else []
 
