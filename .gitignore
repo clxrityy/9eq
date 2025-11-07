@@ -49,6 +49,9 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 
+# Keep coverage badge
+!coverage.svg
+
 # Translations
 *.mo
 *.pot

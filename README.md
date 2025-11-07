@@ -5,7 +5,11 @@ Real-time audio visualizer.
 > [!NOTE]
 > The CLI command is `nineeq` (nine-e-q) and the Python package is `9eq`
 
-![Python Version](https://img.shields.io/badge/python-3.8+-blue.svg) ![License](https://img.shields.io/badge/license-MIT-green.svg)
+![Python Version](https://img.shields.io/badge/python-3.8+-blue.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
+[![Tests](https://github.com/clxrityy/9eq/actions/workflows/test.yml/badge.svg)](https://github.com/clxrityy/9eq/actions/workflows/test.yml)
+[![codecov](https://codecov.io/gh/clxrityy/9eq/branch/main/graph/badge.svg)](https://codecov.io/gh/clxrityy/9eq)
+![Coverage](./coverage.svg)
 
 ## Features
 

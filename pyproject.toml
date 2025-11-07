@@ -61,3 +61,38 @@ disallow_untyped_defs = false
 python_version = "3.8"
 warn_return_any = true
 warn_unused_configs = true
+
+[tool.pytest.ini_options]
+addopts = [
+  "--strict-markers",
+  "--strict-config",
+  "-ra",
+]
+python_classes = ["Test*"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+testpaths = ["tests"]
+
+[tool.coverage.run]
+omit = [
+  "*/tests/*",
+  "*/test_*.py",
+  "*/__pycache__/*",
+  "*/venv/*",
+  "*/env/*",
+]
+source = ["nineeq"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "pragma: no cover",
+  "def __repr__",
+  "raise AssertionError",
+  "raise NotImplementedError",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+  "@abstractmethod",
+]
+precision = 2
+show_missing = true
+skip_covered = false
